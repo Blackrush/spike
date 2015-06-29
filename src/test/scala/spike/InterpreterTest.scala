@@ -16,6 +16,11 @@ class InterpreterTest extends FunSpec {
     it("should print messages") {
       Interpreter(Parser("(print \"Hello, World!\")"))
     }
+
+    it("should store and get variables") {
+      val IntExpression(res) = Interpreter(Parser("(let (a 1 b 2) (+ a b))"))
+      assert(res == 3)
+    }
   }
 }
 
