@@ -46,14 +46,17 @@ object Interpreter {
         (FnExpression(args, wrapList(code)), s)
 
       case ListExpression(AtomExpression(fun) :: args) =>
-        val (evaluatedArgs, scope) = args.foldLeft((List.empty[Expression], s)) {
+        val (tmpEvaluatedArgs, scope) = args.foldLeft((List.empty[Expression], s)) {
           case ((acc, scope), x) =>
             val (exp, newScope) = interpret(x, scope)
             (exp :: acc, newScope)
         }
+        val evaluatedArgs = tmpEvaluatedArgs.reverse
         fun match {
           case "+" => (Std.add(evaluatedArgs).get, scope)
+          case "-" => (Std.sub(evaluatedArgs).get, scope)
           case "*" => (Std.mul(evaluatedArgs).get, scope)
+          case "/" => (Std.div(evaluatedArgs), scope)
 
           case "print" =>
             for (arg <- evaluatedArgs) {
@@ -64,7 +67,7 @@ object Interpreter {
             (ListExpression(Nil), scope)
 
           case "call" =>
-            val (fn: FnExpression) :: fnArgs = evaluatedArgs.reverse
+            val (fn: FnExpression) :: fnArgs = evaluatedArgs
             funCall(fn, fnArgs, scope)
 
           case _ =>

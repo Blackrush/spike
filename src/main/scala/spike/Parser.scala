@@ -25,10 +25,12 @@ object Parser {
     }
   }
 
-  def parseNumber(input: String, from: Int, acc: String = "", real: Boolean = false): (NumExpression, Int) =
+  def parseNumber(input: String, from: Int, acc: String = "", real: Boolean = false): (Expression, Int) =
     if (from >= input.length)
       if (real)
         (RealExpression(acc.toDouble), from)
+      else if (acc == "-")
+        (AtomExpression("-"), from)
       else
         (IntExpression(acc.toInt), from)
     else
@@ -38,6 +40,8 @@ object Parser {
         case _ =>
           if (real)
             (RealExpression(acc.toDouble), from)
+          else if (acc == "-")
+            (AtomExpression("-"), from)
           else
             (IntExpression(acc.toInt), from)
       }

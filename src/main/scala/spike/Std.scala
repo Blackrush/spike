@@ -12,10 +12,25 @@ object Std {
     case (a: NumExpression, b: NumExpression) => RealExpression(a.real + b.real)
   }
 
+  def sub(xs: List[Expression]) = foldl(xs) {
+    case (IntExpression(a), IntExpression(b)) => IntExpression(a - b)
+    case (a: NumExpression, b: NumExpression) => RealExpression(a.real - b.real)
+  }
+
   def mul(xs: List[Expression]) = foldl(xs) {
     case (IntExpression(a), IntExpression(b)) => IntExpression(a * b)
     case (a: NumExpression, b: NumExpression) => RealExpression(a.real * b.real)
   }
+
+  def div(xs: List[Expression]) =
+    xs match {
+      case List(num: NumExpression, div: NumExpression) =>
+        val res = num.real / div.real
+        if (res.toInt == res)
+          IntExpression(res.toInt)
+        else
+          RealExpression(res)
+    }
 
   def truthy(exp: Expression) =
     exp match {

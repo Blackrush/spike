@@ -8,9 +8,7 @@ class InterpreterTest extends FunSpec {
   
   describe("The Spike Interpreter") {
     it("should perform simple arithmetics") {
-      val ast = Parser("(+ 1 2 (* 3 5))")
-      val IntExpression(res) = Interpreter(ast)
-      assert(res == 18)
+      val IntExpression(18) = Interpreter(Parser("(+ 1 2 (* 3 (- 10 (/ 10 2))))"))
     }
 
     it("should print messages") {
@@ -38,6 +36,7 @@ class InterpreterTest extends FunSpec {
 
       it("should be executed") {
         val IntExpression(10) = Interpreter(Parser("(let (plus (lambda (a b) (+ a b))) (plus 5 5))"))
+        val IntExpression(-3) = Interpreter(Parser("(let (minus (lambda (a b c) (- a b c))) (minus 0 1 2))"))
       }
 
       it("should be called") {
