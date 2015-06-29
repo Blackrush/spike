@@ -21,6 +21,13 @@ class InterpreterTest extends FunSpec {
       val IntExpression(res) = Interpreter(Parser("(let (a 1 b 2) (+ a b))"))
       assert(res == 3)
     }
+
+    it("should perform conditional branching") {
+      val ast = Parser("(cond ((> a 0) 'foo) (< a -10) 'bar) (true 'buz))")
+      val AtomExpression("foo") = Interpreter(ast)(Map("a" -> IntExpression(20)))
+      val AtomExpression("foo") = Interpreter(ast)(Map("a" -> IntExpression(-20)))
+      val AtomExpression("foo") = Interpreter(ast)(Map("a" -> IntExpression(-5)))
+    }
   }
 }
 

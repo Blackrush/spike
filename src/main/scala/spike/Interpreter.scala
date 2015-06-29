@@ -15,6 +15,14 @@ object Interpreter {
     ast match {
       case AtomExpression(varname) => s(varname)
 
+      case QuoteExpression(exp) => exp
+
+      case ListExpression(AtomExpression("cond") :: code) =>
+        code.collectFirst{case ListExpression(Seq(Std.Truthy(), stmt)) => stmt} match {
+          case None => ListExpression(Nil)
+          case Some(stmt) => Interpreter(stmt)
+        }
+
       case ListExpression(AtomExpression("let") :: ListExpression(vars) :: code) =>
         val scope = withVars(s, vars)
         val res = for (stmt <- code) yield Interpreter(stmt)(scope)
