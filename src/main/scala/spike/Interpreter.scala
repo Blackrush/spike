@@ -31,9 +31,8 @@ object Interpreter {
       case QuoteExpression(exp) => (exp, s)
 
       case ListExpression(AtomExpression("cond") :: code) =>
-        code.collectFirst{case ListExpression(Seq(Std.Truthy(), stmt)) => stmt} match {
-          case None => (ListExpression(Nil), s)
-          case Some(stmt) => interpret(stmt, s)
+        code.dropWhile { case ListExpression(Seq(cond, _)) => !Std.truthy(interpret(cond, s)._1) } match {
+          case ListExpression(Seq(_, exp)) :: tl => interpret(exp, s)
         }
 
       case ListExpression(AtomExpression("let") :: ListExpression(vars) :: code) =>
@@ -57,6 +56,8 @@ object Interpreter {
           case "-" => (Std.sub(evaluatedArgs).get, scope)
           case "*" => (Std.mul(evaluatedArgs).get, scope)
           case "/" => (Std.div(evaluatedArgs), scope)
+          case ">" => (Std.gt(evaluatedArgs), scope)
+          case "<" => (Std.lt(evaluatedArgs), scope)
 
           case "print" =>
             for (arg <- evaluatedArgs) {

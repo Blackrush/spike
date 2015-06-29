@@ -32,6 +32,36 @@ object Std {
           RealExpression(res)
     }
 
+  def gt(xs: List[Expression]) =
+    xs match {
+      case List(IntExpression(a), IntExpression(b)) =>
+        if (a > b)
+          AtomExpression("true")
+        else
+          AtomExpression("nil")
+
+      case List(RealExpression(a), RealExpression(b)) =>
+        if (a > b)
+          AtomExpression("true")
+        else
+          AtomExpression("nil")
+    }
+
+  def lt(xs: List[Expression]) =
+    xs match {
+      case List(IntExpression(a), IntExpression(b)) =>
+        if (a < b)
+          AtomExpression("true")
+        else
+          AtomExpression("nil")
+
+      case List(RealExpression(a), RealExpression(b)) =>
+        if (a < b)
+          AtomExpression("true")
+        else
+          AtomExpression("nil")
+    }
+
   def truthy(exp: Expression) =
     exp match {
       case AtomExpression("nil") => false
