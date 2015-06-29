@@ -11,6 +11,12 @@ object Interpreter {
         withVars(s.updated(name, value), rest)
     }
 
+  def wrapList(exp: List[Expression]) =
+    exp match {
+      case hd :: Nil => hd
+      case _ => ListExpression(exp)
+    }
+
   def interpret(ast: Expression, s: Scope = EmptyScope): (Expression, Scope) =
     ast match {
       case AtomExpression(varname) => (s(varname), s)
@@ -27,6 +33,10 @@ object Interpreter {
         val scope = withVars(s, vars)
         val res = code.map(interpret(_, scope))
         res.last
+
+      case ListExpression(AtomExpression("lambda") :: ListExpression(argExps) :: code) =>
+        val args = for (AtomExpression(arg) <- argExps) yield arg
+        (FnExpression(args, wrapList(code)), s)
 
       case ListExpression(AtomExpression(fun) :: args) =>
         val (evaluatedArgs, scope) = args.foldLeft((List.empty[Expression], s)) {

@@ -21,3 +21,5 @@ case class ListExpression(l: Seq[Expression]) extends Expression
 sealed trait UnaryExpression extends Expression
 
 case class QuoteExpression(exp: Expression) extends UnaryExpression
+
+case class FnExpression(args: Seq[String], body: Expression) extends Expression
