@@ -34,7 +34,7 @@ object Parser {
     else
       input(from) match {
         case '.' if !real => parseNumber(input, from+1, acc + input(from), true)
-        case x if x>='0' && x<='9' => parseNumber(input, from+1, acc + input(from), real)
+        case x if x=='-' || x>='0' && x<='9' => parseNumber(input, from+1, acc + input(from), real)
         case _ =>
           if (real)
             (RealExpression(acc.toDouble), from)
@@ -56,6 +56,7 @@ object Parser {
         (QuoteExpression(exp), end)
       case '(' => parseList(input, from+1)
       case '"' => parseStr(input, from+1)
+      case '-' => parseNumber(input, from)
       case x if x>='0' && x<='9' => parseNumber(input, from)
       case _ => parseAtom(input, from)
     }

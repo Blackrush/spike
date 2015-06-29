@@ -10,6 +10,8 @@ class ParserTest extends FunSpec {
   describe("The Spike Parser") {
     describe("must parse literals") {
       it("should accept integers") {
+        val IntExpression(-1234) = parse("-1234")
+        val IntExpression(-1) = parse("-1")
         val IntExpression(0) = parse("0")
         val IntExpression(1) = parse("1")
         val IntExpression(2) = parse("2")
@@ -20,6 +22,7 @@ class ParserTest extends FunSpec {
       }
 
       it("should accept real numbers") {
+        val RealExpression(-1.23) = parse("-1.23")
         val RealExpression(0.0) = parse("0.0")
         val RealExpression(1.23) = parse("1.23")
       }
