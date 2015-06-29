@@ -27,6 +27,10 @@ class InterpreterTest extends FunSpec {
       val AtomExpression("buz") = Interpreter(ast)(Map("a" -> IntExpression(-5)))
     }
 
+    it("should execute sequentially a block") {
+      val IntExpression(10) = Interpreter(Parser("(do (print \"hello\") (+ 5 5))"))
+    }
+
     describe("lambda functions") {
       it("should be constructed") {
         val FnExpression(args, body) = Interpreter(Parser("(lambda (a b c) (+ a b c))"))

@@ -71,6 +71,9 @@ object Interpreter {
             val (fn: FnExpression) :: fnArgs = evaluatedArgs
             funCall(fn, fnArgs, scope)
 
+          case "do" =>
+            (evaluatedArgs.last, scope)
+
           case _ =>
             scope(fun) match {
               case x: FnExpression => funCall(x, evaluatedArgs, scope)
