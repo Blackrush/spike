@@ -39,6 +39,10 @@ class InterpreterTest extends FunSpec {
       it("should be executed") {
         val IntExpression(10) = Interpreter(Parser("(let (plus (lambda (a b) (+ a b))) (plus 5 5))"))
       }
+
+      it("should be called") {
+        val IntExpression(10) = Interpreter(Parser("(let (plus (lambda (a b) (+ a b))) (call plus 5 5))"))
+      }
     }
   }
 }

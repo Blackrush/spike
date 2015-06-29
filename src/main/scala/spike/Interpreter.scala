@@ -63,6 +63,10 @@ object Interpreter {
             println("")
             (ListExpression(Nil), scope)
 
+          case "call" =>
+            val (fn: FnExpression) :: fnArgs = evaluatedArgs.reverse
+            funCall(fn, fnArgs, scope)
+
           case _ =>
             scope(fun) match {
               case x: FnExpression => funCall(x, evaluatedArgs, scope)
