@@ -11,28 +11,32 @@ object Interpreter {
         withVars(s.updated(name, value), rest)
     }
 
-  def apply(ast: Expression)(implicit s: Scope = EmptyScope): Expression =
+  def interpret(ast: Expression, s: Scope = EmptyScope): (Expression, Scope) =
     ast match {
-      case AtomExpression(varname) => s(varname)
+      case AtomExpression(varname) => (s(varname), s)
 
-      case QuoteExpression(exp) => exp
+      case QuoteExpression(exp) => (exp, s)
 
       case ListExpression(AtomExpression("cond") :: code) =>
         code.collectFirst{case ListExpression(Seq(Std.Truthy(), stmt)) => stmt} match {
-          case None => ListExpression(Nil)
-          case Some(stmt) => Interpreter(stmt)
+          case None => (ListExpression(Nil), s)
+          case Some(stmt) => interpret(stmt, s)
         }
 
       case ListExpression(AtomExpression("let") :: ListExpression(vars) :: code) =>
         val scope = withVars(s, vars)
-        val res = for (stmt <- code) yield Interpreter(stmt)(scope)
+        val res = code.map(interpret(_, scope))
         res.last
 
       case ListExpression(AtomExpression(fun) :: args) =>
-        val evaluatedArgs = for (arg <- args) yield Interpreter(arg)
+        val (evaluatedArgs, scope) = args.foldLeft((List.empty[Expression], s)) {
+          case ((acc, scope), x) =>
+            val (exp, newScope) = interpret(x, scope)
+            (exp :: acc, newScope)
+        }
         fun match {
-          case "+" => Std.add(evaluatedArgs).get
-          case "*" => Std.mul(evaluatedArgs).get
+          case "+" => (Std.add(evaluatedArgs).get, scope)
+          case "*" => (Std.mul(evaluatedArgs).get, scope)
 
           case "print" =>
             for (arg <- evaluatedArgs) {
@@ -40,10 +44,17 @@ object Interpreter {
               print(" ")
             }
             println("")
-            ListExpression(Nil)
+            (ListExpression(Nil), scope)
         }
-      case _: LiteralExpression => ast
+
+      case _: LiteralExpression => (ast, s)
+
       case exp =>
         throw new RuntimeException(exp.toString)
     }
+
+  def apply(ast: Expression)(implicit s: Scope = Map.empty) = {
+    val (exp, scope) = interpret(ast, s)
+    exp
+  }
 }
