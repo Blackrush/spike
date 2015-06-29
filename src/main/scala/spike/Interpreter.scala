@@ -8,7 +8,7 @@ object Interpreter {
     vars match {
       case Nil => s
       case AtomExpression(name) :: (value: Expression) :: rest =>
-        withVars(s.updated(name, value), rest)
+        withVars(s.updated(name, interpret(value, s)._1), rest)
     }
 
   def wrapList(exp: List[Expression]) =
@@ -16,6 +16,13 @@ object Interpreter {
       case hd :: Nil => hd
       case _ => ListExpression(exp)
     }
+
+  def funCall(fun: FnExpression, args: Seq[Expression], scope: Scope) = {
+    val fnScope = args.zip(fun.args)
+      .foldLeft(scope) { case (acc, (value, name)) => acc.updated(name, value) }
+
+    interpret(fun.body, fnScope)
+  }
 
   def interpret(ast: Expression, s: Scope = EmptyScope): (Expression, Scope) =
     ast match {
@@ -55,6 +62,11 @@ object Interpreter {
             }
             println("")
             (ListExpression(Nil), scope)
+
+          case _ =>
+            scope(fun) match {
+              case x: FnExpression => funCall(x, evaluatedArgs, scope)
+            }
         }
 
       case _: LiteralExpression => (ast, s)

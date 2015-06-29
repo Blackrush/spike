@@ -29,10 +29,16 @@ class InterpreterTest extends FunSpec {
       val AtomExpression("foo") = Interpreter(ast)(Map("a" -> IntExpression(-5)))
     }
 
-    it("should construct lambda functions") {
-      val FnExpression(args, body) = Interpreter(Parser("(lambda (a b c) (+ a b c))"))
-      assert(args == List("a", "b", "c"))
-      assert(body == ListExpression(Seq(AtomExpression("+"), AtomExpression("a"), AtomExpression("b"), AtomExpression("c"))))
+    describe("lambda functions") {
+      it("should be constructed") {
+        val FnExpression(args, body) = Interpreter(Parser("(lambda (a b c) (+ a b c))"))
+        assert(args == List("a", "b", "c"))
+        assert(body == ListExpression(Seq(AtomExpression("+"), AtomExpression("a"), AtomExpression("b"), AtomExpression("c"))))
+      }
+
+      it("should be executed") {
+        val IntExpression(10) = Interpreter(Parser("(let (plus (lambda (a b) (+ a b))) (plus 5 5))"))
+      }
     }
   }
 }
