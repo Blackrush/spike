@@ -40,6 +40,22 @@ class SpikeTest extends FunSpec {
       val res = Interpreter(Macro(Parser(code)))
       assert(res == ListExpression(List(IntExpression(2), IntExpression(4), IntExpression(6))))
     }
+
+    it("should be possible to define a function counting all the elements of a list") {
+      val code = """
+(defmacro defn (name args body) '(def #name (lambda #args #body)))
+(defmacro if (cond do else) '(cond (#cond #do) ('else #else)))
+
+(defn len (list)
+      (if list
+          (+ 1 (len (tl list)))
+          0))
+
+(len '(1 2 3 4 5 6 7 8 9 10))
+"""
+      val res = Interpreter(Macro(Parser(code)))
+      assert(res == IntExpression(10))
+    }
   }
 }
 
