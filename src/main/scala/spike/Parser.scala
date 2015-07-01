@@ -60,14 +60,27 @@ object Parser {
         (QuoteExpression(exp), end)
       case '(' => parseList(input, from+1)
       case '"' => parseStr(input, from+1)
+      case '#' =>
+        val (AtomExpression(name), end) = parseAtom(input, from+1)
+        (UnquoteExpression(name), end)
       case '-' => parseNumber(input, from)
       case x if x>='0' && x<='9' => parseNumber(input, from)
       case _ => parseAtom(input, from)
     }
 
-  def parse(input: String) = {
-    val (exp, _) = subparse(input, 0)
-    exp
+  def parse(input: String): Expression = {
+    def rec(start: Int, acc: List[Expression]): Expression =
+      if (start >= input.length)
+        acc match {
+          case Nil => ListExpression(Nil)
+          case hd :: Nil => hd
+          case _ => ListExpression(AtomExpression("do") :: acc.reverse)
+        }
+      else {
+        val (exp, end) = subparse(input, ignoreWhitespaces(input, start))
+        rec(ignoreWhitespaces(input, end), exp :: acc)
+      }
+    rec(0, Nil)
   }
 
   def apply(input: String) = parse(input)

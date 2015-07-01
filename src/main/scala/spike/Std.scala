@@ -62,6 +62,13 @@ object Std {
           AtomExpression("nil")
     }
 
+  def not(xs: List[Expression]) =
+    xs match {
+      case hd :: Nil =>
+        val b = truthy(hd)
+        if (b) AtomExpression("nil") else AtomExpression("true")
+    }
+
   def truthy(exp: Expression) =
     exp match {
       case AtomExpression("nil") => false

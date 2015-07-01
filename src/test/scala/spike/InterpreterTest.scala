@@ -47,6 +47,11 @@ class InterpreterTest extends FunSpec {
         val IntExpression(10) = Interpreter(Parser("(let (plus (lambda (a b) (+ a b))) (call plus 5 5))"))
       }
     }
+
+    it("should negate expressions") {
+      val AtomExpression("true") = Interpreter(Parser("(! 'nil)"))
+      val AtomExpression("nil") =  Interpreter(Parser("(! 'true)"))
+    }
   }
 }
 

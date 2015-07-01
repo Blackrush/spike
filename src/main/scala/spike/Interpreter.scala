@@ -11,11 +11,7 @@ object Interpreter {
         withVars(s.updated(name, interpret(value, s)._1), rest)
     }
 
-  def wrapList(exp: List[Expression]) =
-    exp match {
-      case hd :: Nil => hd
-      case _ => ListExpression(exp)
-    }
+  def wrapList(exp: List[Expression]) = ListExpression.lift(exp)
 
   def funCall(fun: FnExpression, args: Seq[Expression], scope: Scope) = {
     val fnScope = args.zip(fun.args)
@@ -26,6 +22,8 @@ object Interpreter {
 
   def interpret(ast: Expression, s: Scope = EmptyScope): (Expression, Scope) =
     ast match {
+      case ListExpression(Nil) => (ast, s)
+
       case AtomExpression(varname) => (s(varname), s)
 
       case QuoteExpression(exp) => (exp, s)
@@ -58,6 +56,7 @@ object Interpreter {
           case "/" => (Std.div(evaluatedArgs), scope)
           case ">" => (Std.gt(evaluatedArgs), scope)
           case "<" => (Std.lt(evaluatedArgs), scope)
+          case "!" => (Std.not(evaluatedArgs), scope)
 
           case "print" =>
             for (arg <- evaluatedArgs) {
@@ -83,7 +82,7 @@ object Interpreter {
       case _: LiteralExpression => (ast, s)
 
       case exp =>
-        throw new RuntimeException(exp.toString)
+        throw new RuntimeException(Inspector(exp))
     }
 
   def apply(ast: Expression)(implicit s: Scope = Map.empty) = {

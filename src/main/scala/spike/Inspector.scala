@@ -9,6 +9,7 @@ object Inspector {
       case AtomExpression(x) => x
       case ListExpression(list) => list.map(inspect _).mkString("(", " ", ")")
       case QuoteExpression(exp) => "'" + inspect(exp)
+      case UnquoteExpression(name) => "#" + name
     }
 
   def apply(ast: Expression) = inspect(ast)
