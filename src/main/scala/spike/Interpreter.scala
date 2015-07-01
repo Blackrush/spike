@@ -28,6 +28,10 @@ object Interpreter {
 
       case QuoteExpression(exp) => (exp, s)
 
+      case ListExpression(AtomExpression("def") :: AtomExpression(name) :: code :: Nil) =>
+        val res = interpret(code)._1
+        (ListExpression(Nil), s.updated(name, res))
+
       case ListExpression(AtomExpression("cond") :: code) =>
         code.dropWhile { case ListExpression(Seq(cond, _)) => !Std.truthy(interpret(cond, s)._1) } match {
           case ListExpression(Seq(_, exp)) :: tl => interpret(exp, s)

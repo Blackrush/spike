@@ -52,6 +52,11 @@ class InterpreterTest extends FunSpec {
       val AtomExpression("true") = Interpreter(Parser("(! 'nil)"))
       val AtomExpression("nil") =  Interpreter(Parser("(! 'true)"))
     }
+
+    it("should be possible to define variables") {
+      val (ListExpression(Nil), scope) = Interpreter.interpret(Parser("(def hello \"world\")"))
+      assert(scope == Map("hello" -> StrExpression("world")))
+    }
   }
 }
 
