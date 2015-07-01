@@ -11,6 +11,12 @@ class InterpreterTest extends FunSpec {
       val IntExpression(18) = Interpreter(Parser("(+ 1 2 (* 3 (- 10 (/ 10 2))))"))
     }
 
+    it("should perform simple list operations") {
+      val IntExpression(1) = Interpreter(Parser("(hd '(1 2 3))"))
+      val ListExpression(IntExpression(2) :: Nil) = Interpreter(Parser("(tl '(1 2))"))
+      val ListExpression(IntExpression(1) :: Nil) = Interpreter(Parser("(cons 1 '())"))
+    }
+
     it("should print messages") {
       Interpreter(Parser("(print \"Hello, World!\")"))
     }

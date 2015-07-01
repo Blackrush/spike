@@ -68,6 +68,13 @@ object Std {
       case _ => throw new RuntimeException("invalid arity")
     }
 
+  def eq(xs: List[Expression]) = foldl(xs) {
+    case (left: NumExpression, right: NumExpression) => AtomExpression(if (left.real == right.real) "true" else "nil")
+    case (left: StrExpression, right: StrExpression) => AtomExpression(if (left.s.equals(right.s)) "true" else "nil")
+    case (left: AtomExpression, right: AtomExpression) => AtomExpression(if (left.a.equals(right.a)) "true" else "nil")
+    // lists?
+  }
+
   def not(xs: List[Expression]) =
     xs match {
       case hd :: Nil =>
@@ -75,6 +82,41 @@ object Std {
         if (b) AtomExpression("nil") else AtomExpression("true")
 
       case _ => throw new RuntimeException("invalid arity")
+    }
+
+  def and(xs: List[Expression]): Expression =
+    xs match {
+      case Nil => AtomExpression("true")
+      case hd :: tl =>
+        if (!truthy(hd))
+          AtomExpression("nil")
+        else
+          and(tl)
+    }
+
+  def or(xs: List[Expression]): Expression =
+    xs match {
+      case Nil => AtomExpression("true")
+      case hd :: tl =>
+        if (truthy(hd))
+          AtomExpression("true")
+        else
+          or(tl)
+    }
+
+  def cons(xs: List[Expression]): Expression =
+    xs match {
+      case hd :: ListExpression(tl: List[Expression]) :: Nil => ListExpression(hd :: tl)
+    }
+
+  def hd(xs: List[Expression]): Expression =
+    xs match {
+      case ListExpression(hd :: _) :: Nil => hd
+    }
+
+  def tl(xs: List[Expression]): Expression =
+    xs match {
+      case ListExpression(_ :: tl) :: Nil => ListExpression(tl)
     }
 
   def truthy(exp: Expression) =

@@ -20,6 +20,16 @@ object Interpreter {
     interpret(fun.body, fnScope)
   }
 
+  @scala.annotation.tailrec
+  def executeExpressions(scope: Scope, xs: List[Expression]): (Expression, Scope) =
+    xs match {
+      case Nil => (ListExpression(Nil), scope)
+      case hd :: Nil => interpret(hd, scope)
+      case hd :: tl =>
+        val (res, newScope) = interpret(hd, scope)
+        executeExpressions(newScope, tl)
+    }
+
   def interpret(ast: Expression, s: Scope = EmptyScope): (Expression, Scope) =
     ast match {
       case ListExpression(Nil) => (ast, s)
@@ -38,29 +48,31 @@ object Interpreter {
         }
 
       case ListExpression(AtomExpression("let") :: ListExpression(vars) :: code) =>
-        val scope = withVars(s, vars)
-        val res = code.map(interpret(_, scope))
-        res.last
+        executeExpressions(withVars(s, vars), code)
 
       case ListExpression(AtomExpression("lambda") :: ListExpression(argExps) :: code) =>
         val args = for (AtomExpression(arg) <- argExps) yield arg
         (FnExpression(args, wrapList(code)), s)
 
+      case ListExpression(AtomExpression("do") :: code) =>
+        executeExpressions(s, code)
+
       case ListExpression(AtomExpression(fun) :: args) =>
-        val (tmpEvaluatedArgs, scope) = args.foldLeft((List.empty[Expression], s)) {
-          case ((acc, scope), x) =>
-            val (exp, newScope) = interpret(x, scope)
-            (exp :: acc, newScope)
-        }
-        val evaluatedArgs = tmpEvaluatedArgs.reverse
+        val evaluatedArgs = args.map(x => interpret(x, s)._1)
         fun match {
-          case "+" => (Std.add(evaluatedArgs).get, scope)
-          case "-" => (Std.sub(evaluatedArgs).get, scope)
-          case "*" => (Std.mul(evaluatedArgs).get, scope)
-          case "/" => (Std.div(evaluatedArgs), scope)
-          case ">" => (Std.gt(evaluatedArgs), scope)
-          case "<" => (Std.lt(evaluatedArgs), scope)
-          case "!" => (Std.not(evaluatedArgs), scope)
+          case "+" => (Std.add(evaluatedArgs).get, s)
+          case "-" => (Std.sub(evaluatedArgs).get, s)
+          case "*" => (Std.mul(evaluatedArgs).get, s)
+          case "/" => (Std.div(evaluatedArgs), s)
+          case ">" => (Std.gt(evaluatedArgs), s)
+          case "<" => (Std.lt(evaluatedArgs), s)
+          case "!" => (Std.not(evaluatedArgs), s)
+          case "=" => (Std.eq(evaluatedArgs).get, s)
+          case "&" => (Std.and(evaluatedArgs), s)
+          case "|" => (Std.or(evaluatedArgs), s)
+          case "cons" => (Std.cons(evaluatedArgs), s)
+          case "hd" => (Std.hd(evaluatedArgs), s)
+          case "tl" => (Std.tl(evaluatedArgs), s)
 
           case "print" =>
             for (arg <- evaluatedArgs) {
@@ -68,19 +80,16 @@ object Interpreter {
               print(" ")
             }
             println("")
-            (ListExpression(Nil), scope)
+            (ListExpression(Nil), s)
 
           case "call" =>
             val (fn: FnExpression) :: fnArgs = evaluatedArgs
-            funCall(fn, fnArgs, scope)
-
-          case "do" =>
-            (evaluatedArgs.last, scope)
+            funCall(fn, fnArgs, s)
 
           case _ =>
-            scope.get(fun) match {
+            s.get(fun) match {
               case None => throw new RuntimeException(s"the function ${fun} does not exist")
-              case Some(x: FnExpression) => funCall(x, evaluatedArgs, scope)
+              case Some(x: FnExpression) => funCall(x, evaluatedArgs, s)
               case Some(x) => throw new RuntimeException(s"${Inspector(x)} is not callable")
             }
         }
