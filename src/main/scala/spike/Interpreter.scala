@@ -74,8 +74,10 @@ object Interpreter {
             (evaluatedArgs.last, scope)
 
           case _ =>
-            scope(fun) match {
-              case x: FnExpression => funCall(x, evaluatedArgs, scope)
+            scope.get(fun) match {
+              case None => throw new RuntimeException(s"the function ${fun} does not exist")
+              case Some(x: FnExpression) => funCall(x, evaluatedArgs, scope)
+              case Some(x) => throw new RuntimeException(s"${Inspector(x)} is not callable")
             }
         }
 

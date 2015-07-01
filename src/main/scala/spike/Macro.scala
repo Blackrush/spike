@@ -3,7 +3,6 @@ package spike
 object Macro {
   type Scope = Map[String, Expression]
   type Scoped[T] = (T, Scope)
-  type ScopeFn[T] = (Scoped[T] => Scoped[T])
 
   def merge[K, V](a: Map[K, V], b: Map[K, V]): Map[K, V] =
     a ++ b
@@ -26,10 +25,10 @@ object Macro {
     // @scala.annotation.tailrec
     def rec(xs: Scoped[List[T]], acc: List[T]): Scoped[List[T]] =
       xs flatMap {
-        case Nil => (acc.reverse, xs._2)
+        case Nil => xs then acc.reverse
         case hd :: tl =>
-          val res = fn(xs.then(hd))
-          rec(res.then(tl), res() :: acc)
+          val res = fn(xs then hd)
+          rec(res then tl, res() :: acc)
       }
     rec(xs, Nil)
   }
@@ -39,7 +38,7 @@ object Macro {
       case UnquoteExpression(name) =>
         ast.scope(name)
       case ListExpression(xs) =>
-        ListExpression(xs map { x => unquote(ast.then(x)) })
+        ListExpression(xs map {x => unquote(ast then x)})
       case exp => exp
     }
 
@@ -51,13 +50,13 @@ object Macro {
 
       case exp @ ListExpression(AtomExpression(name) :: args) =>
         ast.scope.get(name) match {
-          case None =>
-            val res = traverse((args, ast.scope))(run _)
-            res.map(x => ListExpression(AtomExpression(name) :: x))
-
           case Some(fn @ FnExpression(_, _)) =>
             val code = Interpreter.funCall(fn, args, ast.scope)
             Macro.run(ast then unquote(code))
+
+          case _ =>
+            val res = traverse(ast then args)(run _)
+            traverse(ast then args)(run _) map {x => ListExpression(AtomExpression(name) :: x)}
         }
 
       case _ => ast

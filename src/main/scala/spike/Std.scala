@@ -30,6 +30,8 @@ object Std {
           IntExpression(res.toInt)
         else
           RealExpression(res)
+
+      case _ => throw new RuntimeException("invalid arity")
     }
 
   def gt(xs: List[Expression]) =
@@ -45,6 +47,8 @@ object Std {
           AtomExpression("true")
         else
           AtomExpression("nil")
+
+      case _ => throw new RuntimeException("invalid arity")
     }
 
   def lt(xs: List[Expression]) =
@@ -60,6 +64,8 @@ object Std {
           AtomExpression("true")
         else
           AtomExpression("nil")
+
+      case _ => throw new RuntimeException("invalid arity")
     }
 
   def not(xs: List[Expression]) =
@@ -67,6 +73,8 @@ object Std {
       case hd :: Nil =>
         val b = truthy(hd)
         if (b) AtomExpression("nil") else AtomExpression("true")
+
+      case _ => throw new RuntimeException("invalid arity")
     }
 
   def truthy(exp: Expression) =
